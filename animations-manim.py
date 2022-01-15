@@ -1,6 +1,10 @@
-from scipy.integrate import odeint
 import numpy as np
+import matplotlib.pyplot as plt
 from numpy import sin, cos
+from scipy.integrate import odeint
+
+from manim import *
+
 
 # Parameters and constants
 g = 9.8
@@ -62,3 +66,69 @@ def double_pendulum_wf(u, tspan, m1, m2, g, L1, L2, μ1, μ2):
 sol_single_wf = odeint(single_pendulum_wf, u0, tspan, args=params)
 sol_double = odeint(double_pendulum, u0_double, tspan, args=params_double)
 sol_double_wf = odeint(double_pendulum_wf, u0_double, tspan, args=params_double_wf)
+
+
+def prepare_quiver(bounds=(6*np.pi, 4*np.pi/3), steps=(0.2*np.pi, 0.2*np.pi), kh = 1):
+    thetas = np.arange(-bounds[0], bounds[0], steps[0])
+    omegas = np.arange(-bounds[1], bounds[1], steps[1])
+    size = len(thetas) * len(omegas)
+    thf, omf = np.empty(size, dtype=np.float64), np.empty(size, dtype=np.float64)
+    slf = np.empty(size, dtype=np.float64)
+    for i, θ in enumerate(thetas):
+        for j, ω in enumerate(omegas):
+            ind = i * len(omegas) + j
+            thf[ind], omf[ind] = θ, ω
+            slf[ind] = single_pendulum_wf((θ, ω), 0, *params)[1]
+    return thf, omf, slf
+
+
+thf, omf, slf = prepare_quiver()
+# plt.plot(sol_single_wf[:, 0], sol_single_wf[:, 1], 'r', label="sol")
+# plt.quiver(thf, omf,  omf, slf, color="b", alpha=0.5)
+# plt.legend(loc='best')
+# plt.xlabel('t')
+# plt.xlim(-1*np.pi/2, 11*np.pi/2)
+# plt.ylim(-3*np.pi/3, 4*np.pi/3)
+# plt.grid()
+# plt.show()
+
+
+class MyVectorField(Scene):
+    def construct(self):
+        axes = NumberPlane([0, 12, 3], [-4, 4, 2])
+        self.add(axes)
+
+        length_func = lambda x: x / 6
+        def func(pos):
+            # xy = pos
+            xy = axes.point_to_coords(pos)
+            roc = single_pendulum_wf((xy[0], xy[1]), 0, *params)
+            return roc[0] * LEFT + roc[1] * UP
+
+        vf = ArrowVectorField(
+            func, 
+            x_range=[-10, 10, 1], 
+            y_range=[-6, 6, 1], 
+            opacity=0.9, 
+            length_func=length_func
+            )
+        self.add(vf)
+        self.wait()
+
+        # dot = Dot().shift(LEFT)
+        # vf.nudge(dot, -2, 60)
+        # dot.add_updater(vf.get_nudge_updater())
+        # theta_1_val = Text(f"pos: {dot.get_center()}").move_to(1.5 * DOWN)
+        # update = lambda mob: mob.become(Text(f"pos: {dot.get_center()}").move_to(1.5 * DOWN))
+        # theta_1_val.add_updater(update)
+
+        # self.add(dot, theta_1_val)
+        # self.wait(6)
+
+        plot = axes.plot_line_graph(
+            sol_single_wf[:200, 0], 
+            sol_single_wf[:200, 1], 
+            vertex_dot_radius=0)
+
+        self.play(Create(plot, run_time=6))
+        self.wait()
