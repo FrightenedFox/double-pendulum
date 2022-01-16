@@ -25,7 +25,98 @@ end
 
 # ╔═╡ 0e479506-8bb5-4155-9b4c-d202d8850bad
 md"""
-# Pendulum problem
+# Single pendulum problem
+"""
+
+# ╔═╡ 6f2470f9-e0bf-47fc-80c2-072c1df88b28
+md"""
+$(LocalResource("galary/single_pendulum_forces.png", :width => 500))
+"""
+
+# ╔═╡ 053b802a-ba79-45cc-911a-b8c4e9201fca
+md"""
+$\begin{align}
+x &= L\sin\theta \\ 
+y &= -L\cos\theta \\ 
+\end{align}$
+
+Z drugiego prawa Newtona
+
+$F=ma$
+
+mamy:
+
+$\begin{align}
+mx'' &= -T\sin\theta - \mu x' \\
+my'' &= T\cos\theta - mg - \mu x'\\ 
+\end{align}$
+
+Z powyższych równań możemy wyprowadzić następujące równanie różniczkowe: 
+
+$\begin{equation}
+\theta\ ''= -\frac{\mu}{m} \cdot \theta\ ' -\frac{g}{L} \sin{\theta}
+\end{equation}$
+"""
+
+# ╔═╡ 29746ef0-6e15-496a-bf27-3454d1463e55
+begin
+	# Parameters
+	g = 9.8
+	
+	# θ₁_, ω₁_, θ₂_, ω₂_ = collect(angles)
+	θ₁_, θ₂_ = [0 0]
+	ω₁_, ω₂_ = [4 -7]
+	m₁, m₂ = [7 4]
+	L₁, L₂ = [15 20]
+	μ₁, μ₂ = 0.1 .* [m₁ m₂]
+	
+	u₀ = [θ₁_, ω₁_]
+	u₀_double = [θ₁_, θ₂_, ω₁_, ω₂_]
+	
+	params = [m₁, g, L₁, μ₁]
+	params_double = [m₁, m₂, g, L₁, L₂]
+	params_double_wf = [m₁, m₂, g, L₁, L₂, μ₁, μ₂]
+	
+	tspan = (0.0, 100.0)
+	t = 0:0.02:40
+	k = 4
+	n = length(t) / k |> floor |> Int
+end
+
+# ╔═╡ 538e2e6f-3a73-4548-bc3c-a53a92aa9704
+md"""
+# Double pendulum problem
+
+$(LocalResource("galary/double_pendulum.png", :width => 400))
+"""
+
+# ╔═╡ 1b1f3434-d299-43ea-9051-6fda91217cc4
+md"""
+$\begin{align}
+x_1 &= L_1\sin\theta_1 \\ 
+y_1 &= -L_1\cos\theta_1 \\ 
+x_2 &= x_1 + L_2\sin\theta_2 \\ 
+y_2 &= y_ - L_2\cos\theta_2 \\
+\end{align}$
+
+Z drugiego prawa Newtona zapisujemy:
+
+$\begin{align}
+m_1x_1'' &= -T_1\sin\theta_1 + T_2\sin\theta_2 \\ 
+m_1y_1'' &= T_1\cos\theta_1 - T_2\cos\theta_2 - m_1g \\ 
+m_2x_2'' &= -T_2\sin\theta_2 \\ 
+m_2y_2'' &=T_2\cos\theta_2 - m_2g
+\end{align}$
+
+Uwzględniając tarcie z powietrzem, mamy:
+
+$\begin{align}
+m_1x_1'' &= -T_1\sin\theta_1 + T_2\sin\theta_2 - \mu x_1'\\ 
+m_1y_1'' &= T_1\cos\theta_1 - T_2\cos\theta_2 - m_1g - \mu y_1'\\ 
+m_2x_2'' &= -T_2\sin\theta_2 - \mu x_2'\\ 
+m_2y_2'' &=T_2\cos\theta_2 - m_2g - \mu y_2'
+\end{align}$
+
 """
 
 # ╔═╡ 61c2ce63-32a3-464d-a1c2-f8e2b1a2540a
@@ -34,7 +125,7 @@ import PlutoUI: combine
 # ╔═╡ c6af0eef-152d-471e-ba7b-2241cd3f7a8b
 begin 
 	"""Single pendulum with friction"""
-	spwf = (θ, ω, g, L, μ) -> -μ * ω - g / L * sin(θ)
+	spwf = (θ, ω, m, g, L, μ) -> -μ / m * ω - g / L * sin(θ)
 	
 	"""Double pednulum (withou friction)"""
 	function dp(θ₁, θ₂, ω₁, ω₂, m₁, m₂, g, L₁, L₂)
@@ -72,54 +163,6 @@ begin
 	function vec_to_list(vecvec, dim) 
 	    vecvec[dim]
 	end
-end
-
-# ╔═╡ 8136ade5-899e-44ac-a04c-40f6f5462cc1
-function angles_input(parameters::Vector)
-	
-	return combine() do Child
-		
-		inputs = [
-			md""" $(name): $(
-				Child(name, Slider(-2pi:pi/10:2pi, default=1, show_value=true))
-			)"""
-			
-			for name in parameters
-		]
-		
-		md"""
-		#### Initial angles and angular velocities
-		$(inputs)
-		"""
-	end
-end
-
-# ╔═╡ 4ca4a936-bf86-4c14-9ed4-da835da3d92e
-@bind angles angles_input(["θ₁", "ω₁", "θ₂", "ω₂"])
-
-# ╔═╡ 29746ef0-6e15-496a-bf27-3454d1463e55
-begin
-	# Parameters
-	g = 9.8
-	
-	θ₁_, θ₂_ = [0 0]
-	# ω₁_, ω₂_ = [4 0]
-	θ₁_, ω₁_, θ₂_, ω₂_ = collect(angles)
-	m₁, m₂ = [1 4]
-	L₁, L₂ = [5 10]
-	μ₁, μ₂ = 0.1 .* [m₁ m₂]
-	
-	u₀ = [θ₁_, ω₁_]
-	u₀_double = [θ₁_, θ₂_, ω₁_, ω₂_]
-	
-	params = [g, L₁, μ₁]
-	params_double = [m₁, m₂, g, L₁, L₂]
-	params_double_wf = [m₁, m₂, g, L₁, L₂, μ₁, μ₂]
-	
-	tspan = (0.0, 100.0)
-	t = 0:0.02:50
-	k = 4
-	n = length(t) / k |> floor |> Int
 end
 
 # ╔═╡ f6e6ec17-b075-429c-919e-38eaa5aa9ff4
@@ -169,6 +212,32 @@ begin
 	plot(sol_double_wf, linewidth=1.5, layout=(2,2), label=["θ₁ [rad]" "θ₂ [rad]" "ω₁ [rad/s]" "ω₂ [rad/s]"], xaxis="t")
 end
 
+# ╔═╡ dffecae5-c6b7-4dfa-b63d-56cbdefe6bc8
+θ, ω = @. (vec_to_list(sol_single_wf.u, 1), vec_to_list(sol_single_wf.u, 2))
+
+# ╔═╡ 8136ade5-899e-44ac-a04c-40f6f5462cc1
+function angles_input(parameters::Vector)
+	
+	return combine() do Child
+		
+		inputs = [
+			md""" $(name): $(
+				Child(name, Slider(-2pi:pi/10:2pi, default=1, show_value=true))
+			)"""
+			
+			for name in parameters
+		]
+		
+		md"""
+		#### Initial angles and angular velocities
+		$(inputs)
+		"""
+	end
+end
+
+# ╔═╡ 4ca4a936-bf86-4c14-9ed4-da835da3d92e
+@bind angles angles_input(["θ₁", "ω₁", "θ₂", "ω₂"])
+
 # ╔═╡ c7a3b4e3-b28c-4976-8615-452b4bc84d1d
 function quiver_plot_params(parameters::Vector)
 	
@@ -201,8 +270,6 @@ function field_plot_single(
 	ωbounds=[3pi/2, 3pi/2], 
 	steps=[pi/5, pi/5], kh=0.9)
 	
-	θ, ω = @. (vec_to_list(sol_single_wf.u, 1), vec_to_list(sol_single_wf.u, 2))
-	
 mesh = [[i, j] 
 	for i=-θbounds[1]:steps[1]:θbounds[2] 
 	for j=-ωbounds[1]:steps[2]:ωbounds[2]]
@@ -229,7 +296,7 @@ end
 field_plot_single(
 	[spfp.l_θ_bound, spfp.r_θ_bound],
 	[spfp.l_ω_bound, spfp.r_ω_bound],
-	[spfp.θ_step, spfp.ω_step], 0.7)
+	[spfp.θ_step, spfp.ω_step], 0.8)
 
 # ╔═╡ 206f4a4f-c248-476a-b1d8-5ac8e7c64688
 function field_plot_double(solution, func, param_list, set=1,
@@ -267,10 +334,10 @@ end
 
 # ╔═╡ b247a0ed-7b66-4d13-b692-f6f35476f8cd
 field_plot_double(sol_double, dp, params_double,
-	2,
+	1,
 	[dpfp.θ, dpfp.ω], 	# bounds
 	[dpfp.θ_step, dpfp.ω_step],
-	[dpfp.θ_other, dpfp.ω_other], 0.5
+	[dpfp.θ_other, dpfp.ω_other], 0.8
 )
 
 # ╔═╡ af4b6545-6513-43d6-a267-d52ad97ceb9e
@@ -278,16 +345,17 @@ begin
 	@userplot pendulumanim
 	@recipe function fpend!(oa::pendulumanim)
 	    x, y, m, title_time = oa.args
+		size_k = 1.5
 	    title --> "Pendulum plot :: [$(@sprintf("%2.1f", title_time))%]"
-	    xlims --> (-L₁-1, L₁+1)
-	    ylims --> (-L₁-1, L₁+1)
-	    markersize --> 5 * m
+	    xlims --> (-L₁ - 1 - size_k * m, L₁ + 1 + size_k * m)
+	    ylims --> (-L₁ - 1 - size_k * m, L₁ + 1 + size_k * m)
+	    markersize --> 3 * m
 	    markercolor --> "black"
 	    seriestype --> :scatter
 	    legend --> :none
 	    framestyle --> :grid
 	    aspect_ratio --> 1
-	    dpi --> 100
+	    dpi --> 120
 	    [x], [y]
 	end
 	
@@ -312,16 +380,17 @@ begin
 	@userplot doublependulumanim
 	@recipe function ffdpend!(oa::doublependulumanim)
 	    x, y, m, title_time = oa.args
+		size_k = 1.5
 	    title --> "Double pendulum plot :: [$(@sprintf("%2.1f", title_time))%]"
-	    xaxis --> ("x", (-L₁-L₂-3*m, L₁+L₂+3*m))
-	    yaxis --> ("y", (-L₁-L₂-3*m, L₁+L₂+3*m))
-	    markersize --> 3 * m
+	    xaxis --> ("x", (-L₁-L₂-size_k*m, L₁+L₂+size_k*m))
+	    yaxis --> ("y", (-L₁-L₂-size_k*m, L₁+L₂+size_k*m))
+	    markersize --> size_k * m
 	    markercolor --> "black"
 	    seriestype --> :scatter
 	    legend --> :none
 	    framestyle --> :grid
 	    aspect_ratio --> 1
-	    dpi --> 100
+	    dpi --> 120
 	    [x], [y]
 	end
 	
@@ -1820,21 +1889,26 @@ version = "0.9.1+5"
 
 # ╔═╡ Cell order:
 # ╟─0e479506-8bb5-4155-9b4c-d202d8850bad
-# ╟─4ca4a936-bf86-4c14-9ed4-da835da3d92e
+# ╟─6f2470f9-e0bf-47fc-80c2-072c1df88b28
+# ╟─053b802a-ba79-45cc-911a-b8c4e9201fca
 # ╠═29746ef0-6e15-496a-bf27-3454d1463e55
+# ╟─4ca4a936-bf86-4c14-9ed4-da835da3d92e
+# ╟─f6e6ec17-b075-429c-919e-38eaa5aa9ff4
 # ╟─36b775e7-8215-4928-ab19-ac6b599a2ea9
 # ╟─26e0a186-8ef3-47a4-a230-2c267848b996
-# ╟─f6e6ec17-b075-429c-919e-38eaa5aa9ff4
-# ╟─b247a0ed-7b66-4d13-b692-f6f35476f8cd
+# ╠═e6515713-d5d5-4024-93d5-c5f0c3f28887
+# ╟─538e2e6f-3a73-4548-bc3c-a53a92aa9704
+# ╟─1b1f3434-d299-43ea-9051-6fda91217cc4
+# ╠═b247a0ed-7b66-4d13-b692-f6f35476f8cd
 # ╟─dbbba9bd-62ef-4c99-b7bb-49493f42a1fb
 # ╟─3dbd6ee8-de1f-4df6-a36b-a7b658387d2f
 # ╟─bb370a45-ffe3-4762-a63f-a720d8aa2eea
-# ╠═e6515713-d5d5-4024-93d5-c5f0c3f28887
 # ╠═b378a33b-40d5-4b68-94ab-15376d48774c
 # ╠═b061fddb-e224-436a-a206-8de2032bf4d7
 # ╟─f5287790-76de-11ec-21ff-3d0d89f56112
 # ╟─61c2ce63-32a3-464d-a1c2-f8e2b1a2540a
 # ╟─c6af0eef-152d-471e-ba7b-2241cd3f7a8b
+# ╟─dffecae5-c6b7-4dfa-b63d-56cbdefe6bc8
 # ╟─8136ade5-899e-44ac-a04c-40f6f5462cc1
 # ╟─c7a3b4e3-b28c-4976-8615-452b4bc84d1d
 # ╟─e1834527-30fd-4f8a-ae0d-208b48eaf2e6

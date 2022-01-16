@@ -95,25 +95,25 @@ thf, omf, slf = prepare_quiver()
 
 class MyVectorField(Scene):
     def construct(self):
-        axes = NumberPlane([0, 12, 3], [-4, 4, 2])
-        self.add(axes)
+        # axes = NumberPlane([0, 12, 3], [-4, 4, 2])
+        # self.add(axes)
 
-        length_func = lambda x: x / 6
+        # length_func = lambda x: x / 6
         def func(pos):
-            # xy = pos
-            xy = axes.point_to_coords(pos)
+            xy = pos
+            # xy = axes.point_to_coords(pos)
             roc = single_pendulum_wf((xy[0], xy[1]), 0, *params)
             return roc[0] * LEFT + roc[1] * UP
 
         vf = ArrowVectorField(
             func, 
-            x_range=[-10, 10, 1], 
-            y_range=[-6, 6, 1], 
+            x_range=[-10, 10, 0.5], 
+            y_range=[-6, 6, 0.5], 
             opacity=0.9, 
-            length_func=length_func
+            # length_func=length_func
             )
         self.add(vf)
-        self.wait()
+        # self.wait()
 
         # dot = Dot().shift(LEFT)
         # vf.nudge(dot, -2, 60)
@@ -125,10 +125,10 @@ class MyVectorField(Scene):
         # self.add(dot, theta_1_val)
         # self.wait(6)
 
-        plot = axes.plot_line_graph(
-            sol_single_wf[:200, 0], 
-            sol_single_wf[:200, 1], 
-            vertex_dot_radius=0)
+        # plot = axes.plot_line_graph(
+        #     sol_single_wf[:200, 0], 
+        #     sol_single_wf[:200, 1], 
+        #     vertex_dot_radius=0)
 
-        self.play(Create(plot, run_time=6))
-        self.wait()
+        # self.play(Create(plot, run_time=6))
+        # self.wait()
